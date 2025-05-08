@@ -1,0 +1,10 @@
+TESTING
+
+1) Deberia agrupar todos los casos de test de una funcion en una sola funcion test, o cada caso deberia tener su propio test?
+2) QUe es lo que se testea? La interfaz publica? Y si la interfaz publica llama a metodos privados, hay que testearlos tambien?
+
+
+DISEÑO
+
+1) Cuando se agrega o se elimina algo, que deberia responder el servicio, un String detallando el resultado? Un Boolean? Hacer un pop del objeto eliminado? Un option?
+2) Cuando expongo unb servicio de busqueda de un objeto en un Vec, el servbicio deberia recibir parametros o el Objeto buscado?
