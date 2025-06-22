@@ -1,19 +1,4 @@
-#[derive(Clone, Copy)]
-#[allow(dead_code)]
-pub struct Persona<'a> {
-    nombre: &'a str,
-    apellido: &'a str,
-    direccion: &'a str,
-    ciudad: &'a str,
-    salario: f64,
-    edad: u8,
-}
-
-impl<'a> Persona<'a> {
-    fn salario_mayor(&self, referencia: f64) -> bool {
-        return self.salario > referencia;
-    }
-}
+use crate::own_crates::ejercicio_2::Persona;
 
 #[allow(dead_code)]
 pub fn get_personas_con_salarios_superiores(
@@ -39,49 +24,6 @@ pub fn get_personas_con_salarios_superiores(
 #[allow(dead_code)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_salario_es_menor() {
-        let persona: Persona<'_> = Persona {
-            nombre: "Simon",
-            apellido: "Bierozko",
-            direccion: "asdf",
-            ciudad: "adf",
-            salario: 100.0,
-            edad: 31,
-        };
-
-        assert_eq!(false, persona.salario_mayor(200.0));
-    }
-
-    #[test]
-    fn test_salario_es_mayor() {
-        let persona: Persona<'_> = Persona {
-            nombre: "Simon",
-            apellido: "Bierozko",
-            direccion: "asdf",
-            ciudad: "adf",
-            salario: 300.0,
-            edad: 31,
-        };
-
-        assert_eq!(true, persona.salario_mayor(200.0));
-    }
-
-    #[test]
-    fn test_salario_es_igual() {
-        let persona: Persona<'_> = Persona {
-            nombre: "Simon",
-            apellido: "Bierozko",
-            direccion: "asdf",
-            ciudad: "adf",
-            salario: 200.0,
-            edad: 31,
-        };
-
-        assert_eq!(false, persona.salario_mayor(200.0));
-    }
-
     #[test]
     fn test_vector_vacio() {
         let personas: Vec<Persona> = vec![];

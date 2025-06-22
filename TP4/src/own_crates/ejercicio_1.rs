@@ -1,9 +1,9 @@
 use crate::own_crates::es_primo::es_primo;
-
+#[allow(dead_code)]
 trait CheckPrime {
     fn is_prime(&self, number: i32) -> bool;
 }
-
+#[allow(dead_code)]
 struct Numbers {
     integers: Vec<i32>,
 }
@@ -16,7 +16,7 @@ impl CheckPrime for Numbers {
         return false;
     }
 }
-
+#[allow(dead_code)]
 impl Numbers {
     pub fn count_primes(&self) -> i32 {
         self.integers.iter().filter(|x| self.is_prime(**x)).count() as i32
@@ -47,5 +47,12 @@ mod tests {
         let vector = vec![5, 7, 11];
         let instancia = Numbers { integers: vector };
         assert_eq!(3, instancia.count_primes());
+    }
+
+    #[test]
+    fn test_vector_vacio() {
+        let vector = vec![];
+        let instancia = Numbers { integers: vector };
+        assert_eq!(0, instancia.count_primes());
     }
 }
