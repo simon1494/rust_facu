@@ -1,14 +1,12 @@
+use std::usize;
+
 use crate::own_crates::ejercicio_2::Persona;
 
 #[allow(dead_code)]
-pub fn edades_en_arreglo(arreglo: [Persona; 4], _objetivo: Persona) -> [u8; 4] {
-    let mut edades = [0u8; 4];
-
-    for (i, persona) in arreglo.iter().enumerate() {
-        edades[i] = persona.edad;
-    }
-
-    edades
+pub fn edades_en_arreglo<const T: usize>(arreglo: &[Persona; T]) -> [u8; T] {
+    let vec_edades: Vec<u8> = arreglo.iter().map(|u| u.edad).collect();
+    let edades: [u8; T] = vec_edades.try_into().unwrap();
+    return edades;
 }
 
 #[cfg(test)]
@@ -36,9 +34,7 @@ mod tests {
             persona("Juli", 35),
         ];
 
-        let objetivo = persona("Luis", 15);
-
-        let resultado = edades_en_arreglo(arreglo, objetivo);
+        let resultado = edades_en_arreglo(&arreglo);
 
         assert_eq!(resultado, [5, 15, 25, 35]);
     }

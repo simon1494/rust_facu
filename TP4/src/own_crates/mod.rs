@@ -10,3 +10,4 @@ pub mod ejercicio_2g;
 pub mod ejercicio_3;
 
 pub mod es_primo;
+pub mod fecha;
