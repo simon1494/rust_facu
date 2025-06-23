@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use std::fmt;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Fecha {
@@ -137,6 +138,12 @@ impl Fecha {
 
     pub fn to_string(&self) -> String {
         format!("{}/{}/{}", self.dia, self.mes, self.ano)
+    }
+}
+
+impl fmt::Display for Fecha {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}/{}/{}", self.dia, self.mes, self.ano)
     }
 }
 

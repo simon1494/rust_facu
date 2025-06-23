@@ -8,6 +8,7 @@ pub mod ejercicio_2e;
 pub mod ejercicio_2f;
 pub mod ejercicio_2g;
 pub mod ejercicio_3;
+pub mod ejercicio_5;
 
 pub mod es_primo;
 pub mod fecha;
