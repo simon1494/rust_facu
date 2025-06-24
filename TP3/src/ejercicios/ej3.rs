@@ -1,3 +1,7 @@
+use chrono::prelude::*;
+use std::fmt;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Fecha {
     dia: u32,
     mes: u32,
@@ -5,11 +9,17 @@ pub struct Fecha {
 }
 #[allow(dead_code)]
 impl Fecha {
-    fn new(dia: u32, mes: u32, ano: u32) -> Fecha {
+    pub fn new(dia: u32, mes: u32, ano: u32) -> Fecha {
         return Fecha { dia, mes, ano };
     }
 
-    fn es_fecha_valida(&self) -> bool {
+    pub fn hoy() -> Self {
+        let mut f = Fecha::new(1, 1, 1999);
+        f.setear_hoy();
+        f
+    }
+
+    pub fn es_fecha_valida(&self) -> bool {
         //Se chequean limites generales
         if !(1..=31).contains(&self.dia) || !(1..=13).contains(&self.mes) {
             return false;
@@ -33,15 +43,15 @@ impl Fecha {
         return true;
     }
 
-    fn es_mes_corto(&self) -> bool {
+    pub fn es_mes_corto(&self) -> bool {
         return [4, 6, 9, 11].contains(&self.mes);
     }
 
-    fn es_bisiesto(&self) -> bool {
+    pub fn es_bisiesto(&self) -> bool {
         return (self.ano % 4 == 0 && self.ano % 100 != 0) || (self.ano % 400 == 0);
     }
 
-    fn es_mayor(&self, otra_fecha: Fecha) -> bool {
+    pub fn es_mayor(&self, otra_fecha: Fecha) -> bool {
         if self.ano > otra_fecha.ano {
             return true;
         } else if self.mes > otra_fecha.mes {
@@ -52,7 +62,7 @@ impl Fecha {
         return false;
     }
 
-    fn restar_dias(&mut self, mut cantidad_dias: i32) {
+    pub fn restar_dias(&mut self, mut cantidad_dias: i32) {
         while cantidad_dias != 0 {
             self.dia -= 1;
             cantidad_dias -= 1;
@@ -77,7 +87,7 @@ impl Fecha {
         }
     }
 
-    fn sumar_dias(&mut self, mut cantidad_dias: u32) {
+    pub fn sumar_dias(&mut self, mut cantidad_dias: u32) {
         while cantidad_dias != 0 {
             let mut lim_dias = 30;
             if self.mes != 2 {
@@ -113,8 +123,27 @@ impl Fecha {
         }
     }
 
-    fn to_string(&self) -> String {
+    pub fn set_fecha(&mut self, dia: u32, mes: u32, ano: u32) {
+        self.dia = dia;
+        self.mes = mes;
+        self.ano = ano;
+    }
+
+    pub fn setear_hoy(&mut self) {
+        let ahora = Local::now().date_naive();
+        self.dia = ahora.day();
+        self.mes = ahora.month();
+        self.ano = ahora.year() as u32;
+    }
+
+    pub fn to_string(&self) -> String {
         format!("{}/{}/{}", self.dia, self.mes, self.ano)
+    }
+}
+
+impl fmt::Display for Fecha {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}/{}/{}", self.dia, self.mes, self.ano)
     }
 }
 
