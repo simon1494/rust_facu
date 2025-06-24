@@ -25,7 +25,7 @@ struct Cancion {
 struct Playlist {
     nombre: String,
     canciones: Vec<Cancion>,
-    #[serde(skip)] // No serializamos esto
+    #[serde(skip)]
     ruta_archivo: String,
 }
 
