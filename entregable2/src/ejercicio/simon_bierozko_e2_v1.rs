@@ -448,12 +448,13 @@ impl<'d> StreamingRust<'d> {
     }
 
     pub fn mayor_medio_pago(&self, solo_activas: bool) -> Result<String, ErroresApp> {
+        // Compruebo que existan suscripciones en la plataforma o propago error custom
         if self.suscripciones.is_empty() {
             return Err(ErroresApp::SinSuscripciones);
         }
 
+        // Instancio hashmap de conteo y lo populo
         let mut conteo: HashMap<String, usize> = HashMap::new();
-
         self.suscripciones
             .values()
             .flat_map(|sus_vec| sus_vec.iter())
@@ -469,22 +470,24 @@ impl<'d> StreamingRust<'d> {
                 *conteo.entry(clave).or_insert(0) += 1;
             });
 
+        // Si estoy contando medios de pago de suscripciones activas, compruebo que existan suscripciones activas, si no, propago error
         if conteo.is_empty() && solo_activas {
             return Err(ErroresApp::SinSuscripcionesActivas);
         }
 
+        // Obtengo la clave del medio de pago mas numeroso (ya sea activo si el flag de activa esta activado, o no activo en caso contrario)
         let mayor_medio = conteo.iter().max_by_key(|clave| clave.1).unwrap();
-
         Ok(mayor_medio.0.clone())
     }
 
     pub fn mayor_suscripcion(&self, solo_activas: bool) -> Result<String, ErroresApp> {
+        // Compruebo que existan suscripciones en la plataforma o propago error custom
         if self.suscripciones.is_empty() {
             return Err(ErroresApp::SinSuscripciones);
         }
 
+        // Instancio hashmap de conteo y lo populo
         let mut conteo: HashMap<String, usize> = HashMap::new();
-
         self.suscripciones
             .values()
             .flat_map(|sus_vec| sus_vec.iter())
@@ -494,12 +497,13 @@ impl<'d> StreamingRust<'d> {
                 *conteo.entry(clave).or_insert(0) += 1;
             });
 
+        // Si estoy contando suscripciones activas, compruebo que existan suscripciones activas, si no, propago error
         if conteo.is_empty() && solo_activas {
             return Err(ErroresApp::SinSuscripcionesActivas);
         }
 
+        // Obtengo la clave de la suscripcion mas numerosa (ya sea activa si el flag de activa esta activado, o no activa en caso contrario)
         let mayor_suscripcion = conteo.iter().max_by_key(|clave| clave.1).unwrap();
-
         Ok(mayor_suscripcion.0.clone())
     }
 }
@@ -516,7 +520,7 @@ pub struct Informe<'g> {
 impl<'d> StreamingRust<'d> {
     pub fn get_historial(&self, nombre_usuario: &'d str) -> Result<Informe<'d>, ErroresApp> {
         // Compruebo que el usuario exista o arrojo error de usuario inexistente que declaro en ErroresApp
-        // Si el usuario existe, recupero su estructura que luego podria llegar a usar para el informe
+        // Si el usuario existe, recupero sus datos que luego podria llegar a usar para el informe
         let usuario = self
             .usuarios
             .iter()
