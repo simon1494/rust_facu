@@ -1,8 +1,6 @@
-use crate::ej::fecha::Fecha;
-use crate::ejercicio::fecha::Fecha;
+use chrono::prelude::*;
 use std::collections::HashMap;
 use std::fmt::{self};
-use chrono::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Fecha {
@@ -150,129 +148,6 @@ impl fmt::Display for Fecha {
     }
 }
 
-#[test]
-fn test_fecha_es_bisiesto() {
-    let fecha: Fecha = Fecha::new(29, 02, 2024);
-    assert_eq!(true, fecha.es_bisiesto());
-
-    let fecha: Fecha = Fecha::new(29, 02, 2020);
-    assert_eq!(true, fecha.es_bisiesto());
-
-    let fecha: Fecha = Fecha::new(29, 02, 1900);
-    assert_eq!(false, fecha.es_bisiesto());
-
-    let fecha: Fecha = Fecha::new(29, 02, 2021);
-    assert_eq!(false, fecha.es_bisiesto());
-}
-
-#[test]
-fn test_fecha_es_mayor() {
-    // TEST 29-02-2024 > 28-02-2024 ✅
-    let fecha: Fecha = Fecha::new(29, 02, 2024);
-    let otra_fecha: Fecha = Fecha::new(28, 02, 2024);
-    assert_eq!(true, fecha.es_mayor(otra_fecha));
-
-    // TEST 01-02-2024 > 28-02-2024 ❌
-    let fecha: Fecha = Fecha::new(1, 02, 2024);
-    let otra_fecha: Fecha = Fecha::new(28, 02, 2024);
-    assert_eq!(false, fecha.es_mayor(otra_fecha));
-
-    // TEST 01-02-2024 > 28-02-1985 ✅
-    let fecha: Fecha = Fecha::new(1, 02, 2024);
-    let otra_fecha: Fecha = Fecha::new(28, 02, 1985);
-    assert_eq!(true, fecha.es_mayor(otra_fecha));
-
-    // TEST 01-02-2024 > 28-01-2024 ✅
-    let fecha: Fecha = Fecha::new(1, 02, 2024);
-    let otra_fecha: Fecha = Fecha::new(28, 01, 2024);
-    assert_eq!(true, fecha.es_mayor(otra_fecha));
-}
-
-#[test]
-fn test_fecha_es_fecha_valida() {
-    // fecha -> 1/1/2025 ✅ - TEST LIMITES NORMALES
-    let fecha: Fecha = Fecha::new(1, 1, 2025);
-    assert_eq!(true, fecha.es_fecha_valida());
-
-    // fecha -> 30/4/1985 ✅ - TEST LIMITE SUPERIOR PARA MES CORTO
-    let fecha: Fecha = Fecha::new(30, 4, 1985);
-    assert_eq!(true, fecha.es_fecha_valida());
-
-    // fecha -> 31/12/2001 ✅ - TEST LIMITE SUPERIOR PARA MES LARGO
-    let fecha: Fecha = Fecha::new(31, 12, 2001);
-    assert_eq!(true, fecha.es_fecha_valida());
-
-    // fecha -> 29/2/2024 ✅ - TEST LIMITE SUPERIOR PARA FEBRERO BISIESTO
-    let fecha: Fecha = Fecha::new(29, 2, 2024);
-    assert_eq!(true, fecha.es_fecha_valida());
-
-    // fecha -> 29/2/1900 ❌ - TEST LIMITE SUPERIOR PARA FEBRERO NO BISIESTO
-    let fecha: Fecha = Fecha::new(29, 02, 1900);
-    assert_eq!(false, fecha.es_fecha_valida());
-
-    // fecha -> 0/1/2025 ❌ - TEST DIA 0
-    let fecha: Fecha = Fecha::new(0, 1, 2025);
-    assert_eq!(false, fecha.es_fecha_valida());
-
-    // fecha -> 31/02/2024 ❌ - TEST FEBRERO CON 31 DIAS
-    let fecha: Fecha = Fecha::new(31, 2, 2025);
-    assert_eq!(false, fecha.es_fecha_valida());
-
-    // fecha -> 31/4/1690 ❌ - TEST MES CORTO CON 31 DIAS
-    let fecha: Fecha = Fecha::new(31, 4, 2025);
-    assert_eq!(false, fecha.es_fecha_valida());
-
-    // fecha -> 1/1/2026 ✅ - TEST AÑO MAYOR AL ACTUAL
-    let fecha: Fecha = Fecha::new(1, 1, 2026);
-    assert_eq!(true, fecha.es_fecha_valida());
-}
-
-#[test]
-fn test_fecha_to_string() {
-    let fecha: Fecha = Fecha::new(1, 1, 2025);
-    assert_eq!("1/1/2025".to_string(), fecha.to_string());
-}
-
-#[test]
-fn test_fecha_restar_dias() {
-    let mut fecha: Fecha = Fecha::new(1, 02, 2024);
-    fecha.restar_dias(5);
-    assert_eq!("27/1/2024", fecha.to_string());
-
-    let mut fecha: Fecha = Fecha::new(1, 02, 2024);
-    fecha.restar_dias(600);
-    assert_eq!("11/6/2022", fecha.to_string());
-
-    let mut fecha: Fecha = Fecha::new(4, 05, 2025);
-    fecha.restar_dias(5498);
-    assert_eq!("15/4/2010", fecha.to_string());
-
-    let mut fecha: Fecha = Fecha::new(1, 02, 2024);
-    fecha.restar_dias(0);
-    assert_eq!("1/2/2024", fecha.to_string());
-}
-
-#[test]
-fn test_fecha_sumar_dias() {
-    let mut fecha: Fecha = Fecha::new(1, 02, 2024);
-    fecha.sumar_dias(5);
-    assert_eq!("6/2/2024", fecha.to_string());
-
-    let mut fecha: Fecha = Fecha::new(4, 05, 2025);
-    fecha.sumar_dias(600);
-    assert_eq!("25/12/2026", fecha.to_string());
-
-    let mut fecha: Fecha = Fecha::new(4, 05, 2025);
-    fecha.sumar_dias(5498);
-    assert_eq!("23/5/2040", fecha.to_string());
-
-    let mut fecha: Fecha = Fecha::new(1, 02, 2024);
-    fecha.sumar_dias(0);
-    assert_eq!("1/2/2024", fecha.to_string());
-}
-
-
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(dead_code)]
 pub enum ErroresApp {
@@ -285,6 +160,9 @@ pub enum ErroresApp {
     UsuarioSinSuscripciones,
     UsuarioSinSuscripcionActiva,
     UsuarioExistente,
+    SinSuscripcionesActivas,
+    SinSuscripciones,
+    SinMediosPagoActivos,
 }
 
 impl fmt::Display for ErroresApp {
@@ -306,6 +184,18 @@ impl fmt::Display for ErroresApp {
             }
             ErroresApp::UsuarioExistente => {
                 write!(f, "Este nombre de usuario ya existe")
+            }
+            ErroresApp::SinSuscripciones => {
+                write!(f, "La plataforma no tiene suscripciones")
+            }
+            ErroresApp::SinSuscripcionesActivas => {
+                write!(f, "No hay suscripciones activas")
+            }
+            ErroresApp::SinMediosPagoActivos => {
+                write!(
+                    f,
+                    "No se encontraron suscripciones activas con medios de pago"
+                )
             }
         }
     }
@@ -557,7 +447,11 @@ impl<'d> StreamingRust<'d> {
         }
     }
 
-    pub fn mayor_medio_pago(&self, solo_activas: bool) -> String {
+    pub fn mayor_medio_pago(&self, solo_activas: bool) -> Result<String, ErroresApp> {
+        if self.suscripciones.is_empty() {
+            return Err(ErroresApp::SinSuscripciones);
+        }
+
         let mut conteo: HashMap<String, usize> = HashMap::new();
 
         self.suscripciones
@@ -575,14 +469,20 @@ impl<'d> StreamingRust<'d> {
                 *conteo.entry(clave).or_insert(0) += 1;
             });
 
-        conteo
-            .into_iter()
-            .max_by_key(|(_, cantidad)| *cantidad)
-            .map(|(medio, _)| format!("{}", medio))
-            .unwrap_or_else(|| "No hay suscripciones activas".to_string())
+        if conteo.is_empty() && solo_activas {
+            return Err(ErroresApp::SinSuscripcionesActivas);
+        }
+
+        let mayor_medio = conteo.iter().max_by_key(|clave| clave.1).unwrap();
+
+        Ok(mayor_medio.0.clone())
     }
 
-    pub fn mayor_suscripcion(&self, solo_activas: bool) -> String {
+    pub fn mayor_suscripcion(&self, solo_activas: bool) -> Result<String, ErroresApp> {
+        if self.suscripciones.is_empty() {
+            return Err(ErroresApp::SinSuscripciones);
+        }
+
         let mut conteo: HashMap<String, usize> = HashMap::new();
 
         self.suscripciones
@@ -594,44 +494,64 @@ impl<'d> StreamingRust<'d> {
                 *conteo.entry(clave).or_insert(0) += 1;
             });
 
-        conteo
-            .into_iter()
-            .max_by_key(|(_, cantidad)| *cantidad)
-            .map(|(tipo, _)| format!("{}", tipo))
-            .unwrap_or_else(|| "No hay suscripciones activas".to_string())
-    }
+        if conteo.is_empty() && solo_activas {
+            return Err(ErroresApp::SinSuscripcionesActivas);
+        }
 
-    
+        let mayor_suscripcion = conteo.iter().max_by_key(|clave| clave.1).unwrap();
+
+        Ok(mayor_suscripcion.0.clone())
+    }
 }
 
-pub struct Informe<'g>{
-    id: u128,
+#[allow(dead_code)]
+#[derive(Debug)]
+pub struct Informe<'g> {
+    nombre_usuario: &'g str,
     usuario: Usuario<'g>,
-    hitorial:Vec<Suscripcion<'g>> 
-
+    historial: Vec<Suscripcion<'g>>,
 }
 
 #[allow(dead_code)]
 impl<'d> StreamingRust<'d> {
-    pub fn get_historial(&self, id_usuario:u128) -> Result<Informe<'d>, ErroresApp>{
-        // Primero compruebo que el usuario exista o arrojo error de usuario inexistente que declaro en ErroresApp
+    pub fn get_historial(&self, nombre_usuario: &'d str) -> Result<Informe<'d>, ErroresApp> {
+        // Compruebo que el usuario exista o arrojo error de usuario inexistente que declaro en ErroresApp
         // Si el usuario existe, recupero su estructura que luego podria llegar a usar para el informe
-        let usuario = self.usuarios.iter().find(|u| u.id == id_usuario);
+        let usuario = self
+            .usuarios
+            .iter()
+            .find(|u| u.nombre_usuario == nombre_usuario);
         if usuario.is_none() {
-            return Err(ErroresApp::UsuarioNoExiste)
+            return Err(ErroresApp::UsuarioNoExiste);
         };
 
-        // Luego, compruebo que el usuario tenga suscripciones, o arrojo error de usuario sin suscripciones que declaro en ErroresApp
-        let historial = self.suscripciones.get(id_usuario).unwrap();
+        // Compruebo que el usuario tenga suscripciones, desenvuelvo y clono; si no, arrojo error de usuario sin suscripciones que declaro en ErroresApp
+        let historial = self.suscripciones.get(&nombre_usuario);
         if historial.is_none() {
-            return Err(ErroresApp::UsuarioSinSuscripciones)
+            return Err(ErroresApp::UsuarioSinSuscripciones);
+        }
+        let mut historial = historial.unwrap().clone();
+
+        // Ordeno el vector de suscripciones el campo inicio fecha y su metodo es mayor. Uso Ordering para explicarle a Rust es el orden de precedencia de una u otra.
+        historial.sort_by(|a, b| {
+            if a.fecha_inicio.es_mayor(b.fecha_inicio) {
+                std::cmp::Ordering::Greater
+            } else {
+                std::cmp::Ordering::Less
+            }
+        });
+
+        //Si esta todo ok, desenvuelvo el usuario que recupere al principio, lo clono y preparo un informe con el y con su historial
+        let usuario = usuario.unwrap().clone();
+
+        let informe = Informe {
+            nombre_usuario,
+            usuario,
+            historial,
         };
-        // Luego, recupero las suscripciones de ese usuario y las ordeno cronologicamente utilizando el campo inicio fecha
-        historial.sort_by(|a,b| a.fecha_inicio.es_mayor(b));
-        
-        //Finalmente, retorno un Ok(Informe)
-        let informe = Informe { usuario, historial };
-        Ok(informe);
+
+        // Retorno informe
+        Ok(informe)
     }
 }
 
@@ -727,123 +647,6 @@ mod tests {
         let mut sistema = instanciar_plataforma();
         let resultado = sistema.subir_suscripcion_a_usuario("fantasma", mockear_medio_pago());
         assert_eq!(resultado.unwrap_err(), ErroresApp::UsuarioSinSuscripciones);
-    }
-
-    #[test]
-    fn test_mayor_medio_pago_todas() {
-        let mut sistema = instanciar_plataforma();
-        sistema
-            .crear_usuario(
-                1,
-                "simon",
-                TipoSuscripcion::CLASICA,
-                TipoMedioPago::EFECTIVO(500.0),
-            )
-            .unwrap();
-        sistema
-            .crear_usuario(
-                2,
-                "luna",
-                TipoSuscripcion::CLASICA,
-                TipoMedioPago::CREDITO { nro_cuenta: "123" },
-            )
-            .unwrap();
-        sistema
-            .subir_suscripcion_a_usuario("simon", TipoMedioPago::EFECTIVO(999.0))
-            .unwrap();
-        sistema
-            .subir_suscripcion_a_usuario("luna", TipoMedioPago::EFECTIVO(999.0))
-            .unwrap();
-
-        let resultado = sistema.mayor_medio_pago(false);
-        assert!(resultado.contains("EFECTIVO"));
-    }
-
-    #[test]
-    fn test_mayor_medio_pago_solo_activas() {
-        let mut sistema = instanciar_plataforma();
-        sistema
-            .crear_usuario(
-                1,
-                "sol",
-                TipoSuscripcion::CLASICA,
-                TipoMedioPago::CREDITO { nro_cuenta: "456" },
-            )
-            .unwrap();
-        sistema
-            .crear_usuario(
-                2,
-                "leo",
-                TipoSuscripcion::CLASICA,
-                TipoMedioPago::EFECTIVO(200.0),
-            )
-            .unwrap();
-        sistema
-            .subir_suscripcion_a_usuario("sol", TipoMedioPago::EFECTIVO(999.0))
-            .unwrap();
-        sistema
-            .subir_suscripcion_a_usuario("leo", TipoMedioPago::EFECTIVO(999.0))
-            .unwrap();
-
-        let resultado = sistema.mayor_medio_pago(true);
-        assert_eq!(resultado, "EFECTIVO");
-    }
-
-    #[test]
-    fn test_mayor_suscripcion_todas() {
-        let mut sistema = instanciar_plataforma();
-        sistema
-            .crear_usuario(1, "ana", TipoSuscripcion::BASICA, mockear_medio_pago())
-            .unwrap();
-        sistema
-            .crear_usuario(2, "tomi", TipoSuscripcion::BASICA, mockear_medio_pago())
-            .unwrap();
-        sistema
-            .crear_usuario(3, "juan", TipoSuscripcion::BASICA, mockear_medio_pago())
-            .unwrap();
-        sistema
-            .subir_suscripcion_a_usuario("ana", mockear_medio_pago())
-            .unwrap();
-        sistema
-            .subir_suscripcion_a_usuario("tomi", mockear_medio_pago())
-            .unwrap();
-
-        let resultado = sistema.mayor_suscripcion(false);
-        assert!(resultado.contains("BASICA"));
-    }
-
-    #[test]
-    fn test_mayor_suscripcion_solo_activas() {
-        let mut sistema = instanciar_plataforma();
-        sistema
-            .crear_usuario(1, "maria", TipoSuscripcion::CLASICA, mockear_medio_pago())
-            .unwrap();
-        sistema
-            .crear_usuario(2, "juan", TipoSuscripcion::CLASICA, mockear_medio_pago())
-            .unwrap();
-        sistema
-            .subir_suscripcion_a_usuario("maria", mockear_medio_pago())
-            .unwrap();
-        sistema
-            .subir_suscripcion_a_usuario("juan", mockear_medio_pago())
-            .unwrap();
-
-        let resultado = sistema.mayor_suscripcion(true);
-        assert_eq!(resultado, "SUPER");
-    }
-
-    #[test]
-    fn test_mayor_medio_pago_sin_suscripciones() {
-        let sistema = instanciar_plataforma();
-        let resultado = sistema.mayor_medio_pago(true);
-        assert_eq!(resultado, "No hay suscripciones activas");
-    }
-
-    #[test]
-    fn test_mayor_suscripcion_sin_suscripciones() {
-        let sistema = instanciar_plataforma();
-        let resultado = sistema.mayor_suscripcion(true);
-        assert_eq!(resultado, "No hay suscripciones activas");
     }
 
     #[test]
@@ -1019,15 +822,347 @@ mod tests {
     }
 
     #[test]
-    fn test_suscripcion_cancelar_y_activar() {
+    fn test_suscripcion_cancelar() {
         let fecha = Fecha::hoy();
         let mut sus = Suscripcion::new("ana", TipoSuscripcion::BASICA, mockear_medio_pago(), fecha);
 
         assert!(sus.activa);
         sus.cancelar();
         assert!(!sus.activa);
+    }
 
-        sus.activar(); // método privado, no testeable directamente sin cambiar visibilidad
-        // Podés agregar #[cfg(test)] pub(crate) fn activar para probarlo si querés
+    #[test]
+    fn test_get_historial_usuario_existente_con_suscripciones() {
+        let mut sistema = instanciar_plataforma();
+        let usuario = "simon";
+        sistema
+            .crear_usuario(1, usuario, TipoSuscripcion::BASICA, mockear_medio_pago())
+            .unwrap();
+
+        let resultado = sistema.get_historial(usuario);
+        assert!(resultado.is_ok());
+        let informe = resultado.unwrap();
+        assert_eq!(informe.nombre_usuario, usuario);
+        assert_eq!(informe.usuario.nombre_usuario, usuario);
+        assert!(!informe.historial.is_empty());
+    }
+
+    #[test]
+    fn test_get_historial_usuario_inexistente() {
+        let sistema = instanciar_plataforma();
+        let resultado = sistema.get_historial("pablito");
+        assert_eq!(resultado.unwrap_err(), ErroresApp::UsuarioNoExiste);
+    }
+
+    #[test]
+    fn test_get_historial_usuario_existente_sin_suscripciones() {
+        let usuario = "basouuura";
+        let mut sistema = instanciar_plataforma();
+        sistema.usuarios.push(Usuario::new(1, usuario));
+        let resultado = sistema.get_historial(usuario);
+        assert_eq!(resultado.unwrap_err(), ErroresApp::UsuarioSinSuscripciones);
+    }
+
+    #[test]
+    fn test_get_historial_usuario_existente_con_varias_suscripciones() {
+        let mut sistema = instanciar_plataforma();
+        let usuario = "usuario_platudo";
+        sistema
+            .crear_usuario(1, usuario, TipoSuscripcion::BASICA, mockear_medio_pago())
+            .unwrap();
+        sistema
+            .subir_suscripcion_a_usuario(usuario, mockear_medio_pago())
+            .unwrap();
+        sistema
+            .subir_suscripcion_a_usuario(usuario, mockear_medio_pago())
+            .unwrap();
+
+        let resultado = sistema.get_historial(usuario);
+        assert!(resultado.is_ok());
+        let informe = resultado.unwrap();
+        assert_eq!(informe.nombre_usuario, usuario);
+        assert!(informe.historial.len() >= 3);
+
+        for i in 1..informe.historial.len() {
+            assert!(
+                !informe.historial[i]
+                    .fecha_inicio
+                    .es_mayor(informe.historial[i - 1].fecha_inicio),
+                "Historial no está ordenado cronológicamente"
+            );
+            println!("{:?}", informe)
+        }
+    }
+
+    #[test]
+    fn test_fecha_es_bisiesto() {
+        let fecha: Fecha = Fecha::new(29, 02, 2024);
+        assert_eq!(true, fecha.es_bisiesto());
+
+        let fecha: Fecha = Fecha::new(29, 02, 2020);
+        assert_eq!(true, fecha.es_bisiesto());
+
+        let fecha: Fecha = Fecha::new(29, 02, 1900);
+        assert_eq!(false, fecha.es_bisiesto());
+
+        let fecha: Fecha = Fecha::new(29, 02, 2021);
+        assert_eq!(false, fecha.es_bisiesto());
+    }
+
+    #[test]
+    fn test_fecha_es_mayor() {
+        // TEST 29-02-2024 > 28-02-2024
+        let fecha: Fecha = Fecha::new(29, 02, 2024);
+        let otra_fecha: Fecha = Fecha::new(28, 02, 2024);
+        assert_eq!(true, fecha.es_mayor(otra_fecha));
+
+        // TEST 01-02-2024 > 28-02-2024
+        let fecha: Fecha = Fecha::new(1, 02, 2024);
+        let otra_fecha: Fecha = Fecha::new(28, 02, 2024);
+        assert_eq!(false, fecha.es_mayor(otra_fecha));
+
+        // TEST 01-02-2024 > 28-02-1985
+        let fecha: Fecha = Fecha::new(1, 02, 2024);
+        let otra_fecha: Fecha = Fecha::new(28, 02, 1985);
+        assert_eq!(true, fecha.es_mayor(otra_fecha));
+
+        // TEST 01-02-2024 > 28-01-2024
+        let fecha: Fecha = Fecha::new(1, 02, 2024);
+        let otra_fecha: Fecha = Fecha::new(28, 01, 2024);
+        assert_eq!(true, fecha.es_mayor(otra_fecha));
+    }
+
+    #[test]
+    fn test_fecha_es_fecha_valida() {
+        let fecha: Fecha = Fecha::new(1, 1, 2025);
+        assert_eq!(true, fecha.es_fecha_valida());
+
+        let fecha: Fecha = Fecha::new(30, 4, 1985);
+        assert_eq!(true, fecha.es_fecha_valida());
+
+        let fecha: Fecha = Fecha::new(31, 12, 2001);
+        assert_eq!(true, fecha.es_fecha_valida());
+
+        let fecha: Fecha = Fecha::new(29, 2, 2024);
+        assert_eq!(true, fecha.es_fecha_valida());
+
+        let fecha: Fecha = Fecha::new(29, 02, 1900);
+        assert_eq!(false, fecha.es_fecha_valida());
+
+        let fecha: Fecha = Fecha::new(0, 1, 2025);
+        assert_eq!(false, fecha.es_fecha_valida());
+
+        let fecha: Fecha = Fecha::new(31, 2, 2025);
+        assert_eq!(false, fecha.es_fecha_valida());
+
+        let fecha: Fecha = Fecha::new(31, 4, 2025);
+        assert_eq!(false, fecha.es_fecha_valida());
+
+        let fecha: Fecha = Fecha::new(1, 1, 2026);
+        assert_eq!(true, fecha.es_fecha_valida());
+    }
+
+    #[test]
+    fn test_fecha_to_string() {
+        let fecha: Fecha = Fecha::new(1, 1, 2025);
+        assert_eq!("1/1/2025".to_string(), fecha.to_string());
+    }
+
+    #[test]
+    fn test_fecha_restar_dias() {
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.restar_dias(5);
+        assert_eq!("27/1/2024", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.restar_dias(600);
+        assert_eq!("11/6/2022", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(4, 05, 2025);
+        fecha.restar_dias(5498);
+        assert_eq!("15/4/2010", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.restar_dias(0);
+        assert_eq!("1/2/2024", fecha.to_string());
+    }
+
+    #[test]
+    fn test_fecha_sumar_dias() {
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.sumar_dias(5);
+        assert_eq!("6/2/2024", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(4, 05, 2025);
+        fecha.sumar_dias(600);
+        assert_eq!("25/12/2026", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(4, 05, 2025);
+        fecha.sumar_dias(5498);
+        assert_eq!("23/5/2040", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.sumar_dias(0);
+        assert_eq!("1/2/2024", fecha.to_string());
+    }
+    #[test]
+
+    fn test_mayor_suscripcion_con_varias_suscripciones() {
+        let mut sistema = instanciar_plataforma();
+        sistema
+            .crear_usuario(1, "pepe", TipoSuscripcion::BASICA, mockear_medio_pago())
+            .unwrap();
+        sistema
+            .crear_usuario(2, "pipi", TipoSuscripcion::CLASICA, mockear_medio_pago())
+            .unwrap();
+        sistema
+            .crear_usuario(3, "popo", TipoSuscripcion::CLASICA, mockear_medio_pago())
+            .unwrap();
+
+        let resultado = sistema.mayor_suscripcion(false);
+        assert_eq!(resultado.unwrap(), "CLASICA");
+    }
+
+    #[test]
+    fn test_mayor_suscripcion_sin_suscripciones() {
+        let sistema = instanciar_plataforma();
+        let resultado = sistema.mayor_suscripcion(false);
+        assert_eq!(resultado.unwrap_err(), ErroresApp::SinSuscripciones);
+    }
+
+    #[test]
+    fn test_mayor_suscripcion_activa_con_suscripciones_activas() {
+        let mut sistema = instanciar_plataforma();
+        sistema
+            .crear_usuario(1, "pepe", TipoSuscripcion::BASICA, mockear_medio_pago())
+            .unwrap();
+        sistema
+            .crear_usuario(2, "pipi", TipoSuscripcion::CLASICA, mockear_medio_pago())
+            .unwrap();
+        sistema
+            .crear_usuario(3, "popo", TipoSuscripcion::CLASICA, mockear_medio_pago())
+            .unwrap();
+
+        let resultado = sistema.mayor_suscripcion(true);
+        assert_eq!(resultado.unwrap(), "CLASICA");
+    }
+
+    #[test]
+    fn test_mayor_suscripcion_activa_sin_suscripciones_activas() {
+        let mut sistema = instanciar_plataforma();
+        sistema
+            .crear_usuario(1, "pepe", TipoSuscripcion::BASICA, mockear_medio_pago())
+            .unwrap();
+        sistema
+            .crear_usuario(2, "pipi", TipoSuscripcion::CLASICA, mockear_medio_pago())
+            .unwrap();
+
+        // Cancelar todas las suscripciones activas
+        for usuario in &["pepe", "pipi"] {
+            sistema.cancelar_suscripcion_a_usuario(usuario).unwrap();
+        }
+
+        let resultado = sistema.mayor_suscripcion(true);
+        assert_eq!(resultado.unwrap_err(), ErroresApp::SinSuscripcionesActivas);
+    }
+
+    #[test]
+    fn test_mayor_medio_pago_con_suscripciones() {
+        let mut sistema = instanciar_plataforma();
+        sistema
+            .crear_usuario(
+                1,
+                "elber_galarga",
+                TipoSuscripcion::BASICA,
+                TipoMedioPago::EFECTIVO(100.0),
+            )
+            .unwrap();
+        sistema
+            .crear_usuario(
+                2,
+                "elber_galarga2",
+                TipoSuscripcion::CLASICA,
+                TipoMedioPago::CREDITO { nro_cuenta: "123" },
+            )
+            .unwrap();
+        sistema
+            .crear_usuario(
+                3,
+                "elber_galarga3",
+                TipoSuscripcion::SUPER,
+                TipoMedioPago::CREDITO { nro_cuenta: "456" },
+            )
+            .unwrap();
+
+        let resultado = sistema.mayor_medio_pago(false);
+        assert_eq!(resultado.unwrap(), "CREDITO");
+    }
+
+    #[test]
+    fn test_mayor_medio_pago_sin_suscripciones() {
+        let sistema = instanciar_plataforma();
+        let resultado = sistema.mayor_medio_pago(false);
+        assert_eq!(resultado.unwrap_err(), ErroresApp::SinSuscripciones);
+    }
+
+    #[test]
+    fn test_mayor_medio_pago_activo_con_suscripciones_activas() {
+        let mut sistema = instanciar_plataforma();
+        sistema
+            .crear_usuario(
+                1,
+                "elber_galarga",
+                TipoSuscripcion::BASICA,
+                TipoMedioPago::EFECTIVO(100.0),
+            )
+            .unwrap();
+        sistema
+            .crear_usuario(
+                2,
+                "elber_galarga2",
+                TipoSuscripcion::CLASICA,
+                TipoMedioPago::CREDITO { nro_cuenta: "123" },
+            )
+            .unwrap();
+        sistema
+            .crear_usuario(
+                3,
+                "elber_galarga3",
+                TipoSuscripcion::SUPER,
+                TipoMedioPago::CREDITO { nro_cuenta: "456" },
+            )
+            .unwrap();
+
+        let resultado = sistema.mayor_medio_pago(true);
+        assert_eq!(resultado.unwrap(), "CREDITO");
+    }
+
+    #[test]
+    fn test_mayor_medio_pago_activo_sin_suscripciones_activas() {
+        let mut sistema = instanciar_plataforma();
+        sistema
+            .crear_usuario(
+                1,
+                "elber_galarga",
+                TipoSuscripcion::BASICA,
+                TipoMedioPago::EFECTIVO(100.0),
+            )
+            .unwrap();
+        sistema
+            .crear_usuario(
+                2,
+                "elber_galarga2",
+                TipoSuscripcion::CLASICA,
+                TipoMedioPago::CREDITO { nro_cuenta: "123" },
+            )
+            .unwrap();
+
+        // Cancelar todas las suscripciones activas
+        for usuario in &["elber_galarga", "elber_galarga2"] {
+            sistema.cancelar_suscripcion_a_usuario(usuario).unwrap();
+        }
+
+        let resultado = sistema.mayor_medio_pago(true);
+        assert_eq!(resultado.unwrap_err(), ErroresApp::SinSuscripcionesActivas);
     }
 }
