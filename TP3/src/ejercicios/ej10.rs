@@ -1,6 +1,13 @@
 use crate::ejercicios::ej3::Fecha;
 use std::collections::HashMap;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[allow(dead_code)]
+pub enum Errores {
+    UsuarioSinHistorial,
+    SinHistorialParaEseEstado,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[allow(dead_code)]
 enum Genero {
@@ -20,7 +27,7 @@ struct Libro {
     genero: Genero,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 #[allow(dead_code)]
 struct Cliente {
     nombre: String,
@@ -94,6 +101,10 @@ impl Biblioteca {
     }
 
     pub fn realizar_prestamo(&mut self, libro: &Libro, cliente: &Cliente, dias: u32) -> bool {
+        if self.correo_existente(cliente) {
+            return false;
+        }
+
         if self.contar_prestamos_cliente(cliente) >= 5 {
             return false;
         }
@@ -148,7 +159,10 @@ impl Biblioteca {
 
     pub fn buscar_prestamo(&self, libro: &Libro, cliente: &Cliente) -> Option<&Prestamo> {
         for p in &self.prestamos {
-            if &p.libro == libro && p.cliente.correo == cliente.correo {
+            if &p.libro == libro
+                && p.cliente.correo == cliente.correo
+                && p.cliente.nombre == cliente.nombre
+            {
                 return Some(p);
             }
         }
@@ -169,12 +183,138 @@ impl Biblioteca {
         }
         false
     }
+
+    fn correo_existente(&self, cliente: &Cliente) -> bool {
+        self.prestamos
+            .iter()
+            .any(|p| p.cliente.correo == cliente.correo && p.cliente.nombre != cliente.nombre)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ejercicios::ej3::Fecha;
+
+    #[test]
+    fn test_fecha_es_bisiesto() {
+        let fecha: Fecha = Fecha::new(29, 02, 2024);
+        assert_eq!(true, fecha.es_bisiesto());
+
+        let fecha: Fecha = Fecha::new(29, 02, 2020);
+        assert_eq!(true, fecha.es_bisiesto());
+
+        let fecha: Fecha = Fecha::new(29, 02, 1900);
+        assert_eq!(false, fecha.es_bisiesto());
+
+        let fecha: Fecha = Fecha::new(29, 02, 2021);
+        assert_eq!(false, fecha.es_bisiesto());
+    }
+
+    #[test]
+    fn test_fecha_es_mayor() {
+        // TEST 29-02-2024 > 28-02-2024 ✅
+        let fecha: Fecha = Fecha::new(29, 02, 2024);
+        let otra_fecha: Fecha = Fecha::new(28, 02, 2024);
+        assert_eq!(true, fecha.es_mayor(otra_fecha));
+
+        // TEST 01-02-2024 > 28-02-2024 ❌
+        let fecha: Fecha = Fecha::new(1, 02, 2024);
+        let otra_fecha: Fecha = Fecha::new(28, 02, 2024);
+        assert_eq!(false, fecha.es_mayor(otra_fecha));
+
+        // TEST 01-02-2024 > 28-02-1985 ✅
+        let fecha: Fecha = Fecha::new(1, 02, 2024);
+        let otra_fecha: Fecha = Fecha::new(28, 02, 1985);
+        assert_eq!(true, fecha.es_mayor(otra_fecha));
+
+        // TEST 01-02-2024 > 28-01-2024 ✅
+        let fecha: Fecha = Fecha::new(1, 02, 2024);
+        let otra_fecha: Fecha = Fecha::new(28, 01, 2024);
+        assert_eq!(true, fecha.es_mayor(otra_fecha));
+    }
+
+    #[test]
+    fn test_fecha_es_fecha_valida() {
+        // fecha -> 1/1/2025 ✅ - TEST LIMITES NORMALES
+        let fecha: Fecha = Fecha::new(1, 1, 2025);
+        assert_eq!(true, fecha.es_fecha_valida());
+
+        // fecha -> 30/4/1985 ✅ - TEST LIMITE SUPERIOR PARA MES CORTO
+        let fecha: Fecha = Fecha::new(30, 4, 1985);
+        assert_eq!(true, fecha.es_fecha_valida());
+
+        // fecha -> 31/12/2001 ✅ - TEST LIMITE SUPERIOR PARA MES LARGO
+        let fecha: Fecha = Fecha::new(31, 12, 2001);
+        assert_eq!(true, fecha.es_fecha_valida());
+
+        // fecha -> 29/2/2024 ✅ - TEST LIMITE SUPERIOR PARA FEBRERO BISIESTO
+        let fecha: Fecha = Fecha::new(29, 2, 2024);
+        assert_eq!(true, fecha.es_fecha_valida());
+
+        // fecha -> 29/2/1900 ❌ - TEST LIMITE SUPERIOR PARA FEBRERO NO BISIESTO
+        let fecha: Fecha = Fecha::new(29, 02, 1900);
+        assert_eq!(false, fecha.es_fecha_valida());
+
+        // fecha -> 0/1/2025 ❌ - TEST DIA 0
+        let fecha: Fecha = Fecha::new(0, 1, 2025);
+        assert_eq!(false, fecha.es_fecha_valida());
+
+        // fecha -> 31/02/2024 ❌ - TEST FEBRERO CON 31 DIAS
+        let fecha: Fecha = Fecha::new(31, 2, 2025);
+        assert_eq!(false, fecha.es_fecha_valida());
+
+        // fecha -> 31/4/1690 ❌ - TEST MES CORTO CON 31 DIAS
+        let fecha: Fecha = Fecha::new(31, 4, 2025);
+        assert_eq!(false, fecha.es_fecha_valida());
+
+        // fecha -> 1/1/2026 ✅ - TEST AÑO MAYOR AL ACTUAL
+        let fecha: Fecha = Fecha::new(1, 1, 2026);
+        assert_eq!(true, fecha.es_fecha_valida());
+    }
+
+    #[test]
+    fn test_fecha_to_string() {
+        let fecha: Fecha = Fecha::new(1, 1, 2025);
+        assert_eq!("1/1/2025".to_string(), fecha.to_string());
+    }
+
+    #[test]
+    fn test_fecha_restar_dias() {
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.restar_dias(5);
+        assert_eq!("27/1/2024", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.restar_dias(600);
+        assert_eq!("11/6/2022", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(4, 05, 2025);
+        fecha.restar_dias(5498);
+        assert_eq!("15/4/2010", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.restar_dias(0);
+        assert_eq!("1/2/2024", fecha.to_string());
+    }
+
+    #[test]
+    fn test_fecha_sumar_dias() {
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.sumar_dias(5);
+        assert_eq!("6/2/2024", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(4, 05, 2025);
+        fecha.sumar_dias(600);
+        assert_eq!("25/12/2026", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(4, 05, 2025);
+        fecha.sumar_dias(5498);
+        assert_eq!("23/5/2040", fecha.to_string());
+
+        let mut fecha: Fecha = Fecha::new(1, 02, 2024);
+        fecha.sumar_dias(0);
+        assert_eq!("1/2/2024", fecha.to_string());
+    }
 
     fn crear_libro() -> Libro {
         Libro {
@@ -328,5 +468,135 @@ mod tests {
         let ok = biblioteca.devolver_libro(&libro, &cliente);
         assert!(ok);
         assert_eq!(biblioteca.obtener_copias(&libro), 1);
+    }
+
+    #[test]
+    fn test_realizar_prestamo_con_igual_correo() {
+        let libro = crear_libro();
+        let cliente_original = Cliente {
+            nombre: "Mandinga".to_string(),
+            telefono: "1234651346".to_string(),
+            correo: "mandingueitor@mail.com".to_string(),
+        };
+        let cliente_distinto = Cliente {
+            nombre: "Otro Mandinga".to_string(),
+            telefono: "34623462".to_string(),
+            correo: "mandingueitor@mail.com".to_string(), // mismo correo
+        };
+
+        let mut biblioteca = Biblioteca::new("BN", "LP");
+        biblioteca.incrementar_copias(&libro);
+        biblioteca.realizar_prestamo(&libro, &cliente_original, 3);
+
+        // intento de duplicado
+        biblioteca.incrementar_copias(&libro);
+        let resultado = biblioteca.realizar_prestamo(&libro, &cliente_distinto, 3);
+
+        assert!(
+            !resultado,
+            "Ya hay otro cliente con el mismo correo pillin. Toca de acaaaa"
+        );
+    }
+
+    #[test]
+    fn test_mismo_cliente_puede_tener_varios_prestamos() {
+        let libro1 = crear_libro();
+        let libro2 = Libro {
+            isbn: "999".to_string(),
+            titulo: "Libro 2".to_string(),
+            autor: "Autor X".to_string(),
+            paginas: 100,
+            genero: Genero::Otros,
+        };
+        let cliente = crear_cliente();
+        let mut biblioteca = Biblioteca::new("BN", "LP");
+
+        biblioteca.incrementar_copias(&libro1);
+        biblioteca.incrementar_copias(&libro2);
+
+        let r1 = biblioteca.realizar_prestamo(&libro1, &cliente, 5);
+        let r2 = biblioteca.realizar_prestamo(&libro2, &cliente, 5);
+
+        assert!(
+            r1 && r2,
+            "El mismo cliente debería poder tener múltiples préstamos activos."
+        );
+    }
+
+    #[test]
+    fn test_buscar_prestamo_no_retorna_prestamo_de_otro_cliente() {
+        let libro = crear_libro();
+        let cliente_original = crear_cliente();
+        let cliente_distinto = Cliente {
+            nombre: "Otro".to_string(),
+            telefono: "000".to_string(),
+            correo: cliente_original.correo.clone(), // mismo correo
+        };
+
+        let mut biblioteca = Biblioteca::new("BN", "LP");
+        biblioteca.incrementar_copias(&libro);
+        biblioteca.realizar_prestamo(&libro, &cliente_original, 5);
+
+        let encontrado = biblioteca.buscar_prestamo(&libro, &cliente_distinto);
+        assert!(
+            encontrado.is_none(),
+            "No debe devolver préstamo de otro cliente con el mismo correo"
+        );
+    }
+
+    #[test]
+    fn test_no_se_puede_devolver_libro_de_otro_cliente() {
+        let libro = crear_libro();
+        let cliente_original = crear_cliente();
+        let cliente_incorrecto = Cliente {
+            nombre: "Invasor".to_string(),
+            telefono: "0000".to_string(),
+            correo: "otro@mail.com".to_string(),
+        };
+
+        let mut biblioteca = Biblioteca::new("BN", "LP");
+        biblioteca.incrementar_copias(&libro);
+        biblioteca.realizar_prestamo(&libro, &cliente_original, 3);
+
+        // Intento devolver el libro con un cliente que no tiene el préstamo
+        let resultado = biblioteca.devolver_libro(&libro, &cliente_incorrecto);
+        assert!(
+            !resultado,
+            "No debe permitir devolver un libro que no pertenece a este cliente"
+        );
+        assert_eq!(
+            biblioteca.obtener_copias(&libro),
+            0,
+            "Las copias no deben incrementarse"
+        );
+    }
+
+    #[test]
+    fn test_no_se_puede_devolver_libro_dos_veces() {
+        let libro = crear_libro();
+        let cliente = crear_cliente();
+
+        let mut biblioteca = Biblioteca::new("BN", "LP");
+        biblioteca.incrementar_copias(&libro);
+        biblioteca.realizar_prestamo(&libro, &cliente, 3);
+
+        // Primera devolución: válida
+        assert!(biblioteca.devolver_libro(&libro, &cliente));
+        assert_eq!(
+            biblioteca.obtener_copias(&libro),
+            1,
+            "Las copias deben incrementarse en la primera devolución"
+        );
+
+        // Segunda devolución: debe fallar y no alterar copias
+        assert!(
+            !biblioteca.devolver_libro(&libro, &cliente),
+            "No debe permitir devolver dos veces el mismo préstamo"
+        );
+        assert_eq!(
+            biblioteca.obtener_copias(&libro),
+            1,
+            "Las copias no deben incrementarse en una devolución repetida"
+        );
     }
 }

@@ -8,4 +8,3 @@ pub mod ej6;
 pub mod ej7;
 pub mod ej8;
 pub mod ej9;
-pub mod simon_bierozko_v1;

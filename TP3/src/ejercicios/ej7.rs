@@ -9,8 +9,7 @@ pub enum Color {
     NEGRO,
 }
 
-#[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Auto {
     pub marca: String,
     pub modelo: String,
@@ -20,7 +19,6 @@ pub struct Auto {
 }
 
 #[allow(dead_code)]
-
 impl Auto {
     pub fn new(marca: String, modelo: String, ano: u16, color: Color, precio_bruto: f64) -> Auto {
         Auto {
@@ -32,51 +30,32 @@ impl Auto {
         }
     }
 
-    fn calcular_precio(&mut self) -> f64 {
-        let mut precio_final: f64 = self.precio_bruto;
+    pub fn calcular_precio(&self) -> f64 {
+        let mut precio = self.precio_bruto;
 
-        // PERCEPCIONES POR TIPO DE COLOR
-        precio_final += self.percepciones_por_color();
-
-        // PERCEPCIONES POR MARCA
-        precio_final += self.percepciones_por_marca();
-
-        // PERCEPCIONES POR AÑO
-        precio_final += self.percepciones_por_ano();
-
-        return precio_final;
-    }
-    fn percepciones_por_color(&self) -> f64 {
-        let primarios: [Color; 3] = [Color::ROJO, Color::AZUL, Color::AMARILLO];
-
-        // PERCEPCIONES POR TIPO DE COLOR
-        if primarios.contains(&self.color) {
-            return self.precio_bruto * 25.0 / 100.0;
+        // recargo/descuento por color
+        if self.color == Color::ROJO || self.color == Color::AZUL || self.color == Color::AMARILLO {
+            precio += precio * 0.25;
+        } else {
+            precio -= precio * 0.10;
         }
-        return -1.0 * (self.precio_bruto * 10.0 / 100.0);
-    }
 
-    fn percepciones_por_marca(&self) -> f64 {
-        if self.marca == "BMW".to_string() {
-            return self.precio_bruto * 15.0 / 100.0;
+        // recargo por marca BMW
+        if self.marca == "BMW" {
+            precio += precio * 0.15;
         }
-        return 0.0;
-    }
 
-    fn percepciones_por_ano(&self) -> f64 {
+        // descuento por año menor a 2000
         if self.ano < 2000 {
-            return -1.0 * (self.precio_bruto * 5.0 / 100.0);
+            precio -= precio * 0.05;
         }
-        return 0.0;
-    }
 
-    pub fn to_string(&self) -> String {
-        format!("{:?}", self)
+        precio
     }
 }
 
 #[allow(dead_code)]
-pub struct Concesionaria {
+pub struct ConcesionarioAuto {
     pub nombre: String,
     pub direccion: String,
     pub capacidad_max: usize,
@@ -84,18 +63,13 @@ pub struct Concesionaria {
 }
 
 #[allow(dead_code)]
-impl Concesionaria {
-    pub fn new(
-        nombre: String,
-        direccion: String,
-        capacidad_max: usize,
-        autos_en_stock: Vec<Auto>,
-    ) -> Concesionaria {
-        Concesionaria {
+impl ConcesionarioAuto {
+    pub fn new(nombre: String, direccion: String, capacidad_max: usize) -> ConcesionarioAuto {
+        ConcesionarioAuto {
             nombre,
             direccion,
             capacidad_max,
-            autos_en_stock,
+            autos_en_stock: Vec::new(),
         }
     }
 
@@ -104,339 +78,160 @@ impl Concesionaria {
             return false;
         }
         self.autos_en_stock.push(nuevo_auto);
-        return true;
+        true
     }
 
-    pub fn eliminar_auto(&mut self, marca: String, modelo: String, ano: u16, color: Color) -> bool {
-        if self.autos_en_stock.len() == 0 {
-            return false;
+    pub fn buscar_auto(&self, auto_buscado: &Auto) -> Option<&Auto> {
+        let mut i = 0;
+        while i < self.autos_en_stock.len() {
+            let a = &self.autos_en_stock[i];
+            if a.marca == auto_buscado.marca
+                && a.modelo == auto_buscado.modelo
+                && a.ano == auto_buscado.ano
+                && a.color == auto_buscado.color
+            {
+                return Some(a);
+            }
+            i += 1;
         }
-        if let Some(indice) = self.obtener_posicion_auto(marca, modelo, ano, color) {
-            self.autos_en_stock.remove(indice);
-            return true;
-        }
-        return false;
-    }
-    pub fn buscar_auto(&self, marca: String, modelo: String, ano: u16, color: Color) -> String {
-        if self.autos_en_stock.len() == 0 {
-            return "No hay autos en stock".to_string();
-        }
-
-        if let Some(indice) = self.obtener_posicion_auto(marca, modelo, ano, color) {
-            return Some(self.autos_en_stock[indice].to_string()).unwrap();
-        }
-
-        return "No se encontro auto con esas caracteristicas".to_string();
+        None
     }
 
-    fn obtener_posicion_auto(
-        &self,
-        marca: String,
-        modelo: String,
-        ano: u16,
-        color: Color,
-    ) -> Option<usize> {
-        if let Some(indice) = self.autos_en_stock.iter().position(|auto| {
-            auto.marca == marca && auto.modelo == modelo && auto.ano == ano && auto.color == color
-        }) {
-            return Some(indice);
+    pub fn eliminar_auto(&mut self, auto_buscado: &Auto) -> bool {
+        let mut i = 0;
+        while i < self.autos_en_stock.len() {
+            let a = &self.autos_en_stock[i];
+            if a.marca == auto_buscado.marca
+                && a.modelo == auto_buscado.modelo
+                && a.ano == auto_buscado.ano
+                && a.color == auto_buscado.color
+            {
+                self.autos_en_stock.remove(i);
+                return true;
+            }
+            i += 1;
         }
-        return None;
+        false
     }
 }
 
-#[test]
-fn test_auto_percepciones_por_color() {
-    let mut auto = Auto::new(
-        "BMW".to_string(),
-        "Z1".to_string(),
-        2001,
-        Color::ROJO,
-        1000.0,
-    );
-    assert_eq!(250.0, auto.percepciones_por_color());
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    auto.color = Color::BLANCO;
-    assert_eq!(-100.0, auto.percepciones_por_color());
+    fn crear_auto(marca: &str, modelo: &str, ano: u16, color: Color, precio: f64) -> Auto {
+        Auto::new(marca.to_string(), modelo.to_string(), ano, color, precio)
+    }
 
-    auto.color = Color::AMARILLO;
-    auto.precio_bruto = 2000.0;
-    assert_eq!(500.0, auto.percepciones_por_color());
-}
+    #[test]
+    fn test_calcular_precio_color_primario() {
+        let auto = crear_auto("Ford", "Fiesta", 2010, Color::ROJO, 1000.0);
+        // 25% recargo
+        assert_eq!(auto.calcular_precio(), 1250.0);
+    }
 
-#[test]
-fn test_auto_percepciones_por_marca() {
-    let mut auto = Auto::new(
-        "BMW".to_string(),
-        "Z1".to_string(),
-        2001,
-        Color::ROJO,
-        1000.0,
-    );
+    #[test]
+    fn test_calcular_precio_color_no_primario() {
+        let auto = crear_auto("Ford", "Fiesta", 2010, Color::NEGRO, 1000.0);
+        // 10% descuento
+        assert_eq!(auto.calcular_precio(), 900.0);
+    }
 
-    assert_eq!(150.0, auto.percepciones_por_marca());
+    #[test]
+    fn test_calcular_precio_marca_bmw() {
+        let auto = crear_auto("BMW", "Z1", 2010, Color::NEGRO, 1000.0);
+        // primero 10% descuento por color, luego 15% recargo sobre precio con descuento
+        let esperado = 900.0 + (900.0 * 0.15);
+        assert_eq!(auto.calcular_precio(), esperado);
+    }
 
-    auto.marca = "Renault".to_string();
-    assert_eq!(0.0, auto.percepciones_por_marca());
-}
+    #[test]
+    fn test_calcular_precio_ano_menor_2000() {
+        let auto = crear_auto("Ford", "Ka", 1999, Color::NEGRO, 1000.0);
+        // 10% descuento por color → 900, luego 5% descuento → 855
+        assert_eq!(auto.calcular_precio(), 855.0);
+    }
 
-#[test]
-fn test_auto_percepciones_por_ano() {
-    let mut auto = Auto::new(
-        "BMW".to_string(),
-        "Z1".to_string(),
-        2001,
-        Color::ROJO,
-        1000.0,
-    );
+    #[test]
+    fn test_calcular_precio_todos_los_descuentos_y_recargos() {
+        let auto = crear_auto("BMW", "Z3", 1995, Color::ROJO, 1000.0);
+        // Color primario: +25% → 1250
+        // Marca BMW: +15% → 1437.5
+        // Año <2000: -5% → 1365.625
+        let esperado = 1365.625;
+        assert!((auto.calcular_precio() - esperado).abs() < 0.0001);
+    }
 
-    assert_eq!(0.0, auto.percepciones_por_ano());
+    #[test]
+    fn test_agregar_auto_hasta_capacidad() {
+        let mut cons = ConcesionarioAuto::new("Simone".to_string(), "Abasto".to_string(), 2);
+        let a1 = crear_auto("Ford", "Fiesta", 2010, Color::NEGRO, 1000.0);
+        let a2 = crear_auto("Renault", "Clio", 2011, Color::ROJO, 2000.0);
+        let a3 = crear_auto("BMW", "Z1", 2012, Color::AZUL, 3000.0);
 
-    auto.ano = 1999;
-    assert_eq!(-50.0, auto.percepciones_por_ano());
-}
+        assert_eq!(cons.agregar_auto(a1.clone()), true);
+        assert_eq!(cons.agregar_auto(a2.clone()), true);
+        // supera capacidad
+        assert_eq!(cons.agregar_auto(a3.clone()), false);
+    }
 
-#[test]
-fn test_auto_calcular_precio() {
-    let mut auto = Auto::new(
-        "BMW".to_string(),
-        "Z1".to_string(),
-        2001,
-        Color::ROJO,
-        1000.0,
-    );
+    #[test]
+    fn test_buscar_auto_en_concesionaria_vacia() {
+        let cons = ConcesionarioAuto::new("vacia".to_string(), "Sin autos".to_string(), 5);
+        let buscado = crear_auto("Ford", "Fiesta", 2010, Color::NEGRO, 1000.0);
+        assert_eq!(cons.buscar_auto(&buscado), None);
+    }
 
-    assert_eq!(1400.0, auto.calcular_precio());
+    #[test]
+    fn test_buscar_auto_existente() {
+        let mut cons = ConcesionarioAuto::new("Simone".to_string(), "Abasto".to_string(), 3);
+        let a1 = crear_auto("Ford", "Fiesta", 2010, Color::NEGRO, 1000.0);
+        let a2 = crear_auto("Renault", "Clio", 2011, Color::ROJO, 2000.0);
+        cons.agregar_auto(a1.clone());
+        cons.agregar_auto(a2.clone());
 
-    auto.marca = "Ford".to_string();
-    auto.modelo = "Fiesta".to_string();
-    auto.ano = 1995;
-    auto.color = Color::NEGRO;
-    auto.precio_bruto = 500.0;
+        let resultado = cons.buscar_auto(&a2);
+        assert!(resultado.is_some());
+        assert_eq!(resultado.unwrap().marca, "Renault");
+    }
 
-    assert_eq!(500.0 - 50.0 - 25.0, auto.calcular_precio());
-}
+    #[test]
+    fn test_buscar_auto_inexistente() {
+        let mut cons = ConcesionarioAuto::new("Simone".to_string(), "Abasto".to_string(), 3);
+        let a1 = crear_auto("Ford", "Fiesta", 2010, Color::NEGRO, 1000.0);
+        cons.agregar_auto(a1.clone());
+        let buscado = crear_auto("BMW", "Z1", 2001, Color::ROJO, 3000.0);
+        assert_eq!(cons.buscar_auto(&buscado), None);
+    }
 
-#[test]
-fn test_concesionaria_agregar_auto() {
-    let auto = Auto::new(
-        "BMW".to_string(),
-        "Z1".to_string(),
-        2001,
-        Color::ROJO,
-        1000.0,
-    );
+    #[test]
+    fn test_eliminar_auto_en_concesionaria_vacia() {
+        let mut cons = ConcesionarioAuto::new("Vacia".to_string(), "Nada".to_string(), 3);
+        let buscado = crear_auto("Ford", "Fiesta", 2010, Color::NEGRO, 1000.0);
+        assert_eq!(cons.eliminar_auto(&buscado), false);
+    }
 
-    let auto2: Auto = Auto::new(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2016,
-        Color::AMARILLO,
-        300.0,
-    );
+    #[test]
+    fn test_eliminar_auto_existente() {
+        let mut cons = ConcesionarioAuto::new("Simone".to_string(), "Abasto".to_string(), 3);
+        let a1 = crear_auto("Ford", "Fiesta", 2010, Color::NEGRO, 1000.0);
+        let a2 = crear_auto("Renault", "Clio", 2011, Color::ROJO, 2000.0);
+        cons.agregar_auto(a1.clone());
+        cons.agregar_auto(a2.clone());
 
-    let mut concesionaria = Concesionaria::new(
-        "Simone".to_string(),
-        "Abasto al fondo".to_string(),
-        2,
-        vec![auto],
-    );
-    concesionaria.agregar_auto(auto2.clone());
+        assert_eq!(cons.eliminar_auto(&a1), true);
+        // comprobar que ya no está
+        assert_eq!(cons.buscar_auto(&a1), None);
+    }
 
-    assert_eq!(
-        auto2.to_string(),
-        concesionaria.autos_en_stock[1].to_string()
-    );
+    #[test]
+    fn test_eliminar_auto_inexistente() {
+        let mut cons = ConcesionarioAuto::new("Simone".to_string(), "Abasto".to_string(), 3);
+        let a1 = crear_auto("Ford", "Fiesta", 2010, Color::NEGRO, 1000.0);
+        let a2 = crear_auto("Renault", "Clio", 2011, Color::ROJO, 2000.0);
+        cons.agregar_auto(a1.clone());
 
-    let auto3: Auto = Auto::new(
-        "Ford".to_string(),
-        "Fiesta".to_string(),
-        2016,
-        Color::AMARILLO,
-        300.0,
-    );
-
-    let resultado: bool = concesionaria.agregar_auto(auto3.clone());
-    println!("{}", concesionaria.autos_en_stock.len());
-
-    assert_eq!(false, resultado);
-}
-
-#[test]
-fn test_concesionaria_obtener_posicion_auto() {
-    let auto1 = Auto::new(
-        "BMW".to_string(),
-        "Z1".to_string(),
-        2001,
-        Color::ROJO,
-        1000.0,
-    );
-
-    let auto2: Auto = Auto::new(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2016,
-        Color::AMARILLO,
-        300.0,
-    );
-
-    let auto3: Auto = Auto::new(
-        "Ford".to_string(),
-        "Fiesta".to_string(),
-        2016,
-        Color::AMARILLO,
-        300.0,
-    );
-
-    let mut concesionaria = Concesionaria::new(
-        "Simone".to_string(),
-        "Abasto al fondo".to_string(),
-        3,
-        vec![],
-    );
-
-    concesionaria.agregar_auto(auto1.clone());
-    concesionaria.agregar_auto(auto2.clone());
-    concesionaria.agregar_auto(auto3.clone());
-
-    let posicion: Option<usize> = concesionaria.obtener_posicion_auto(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2016,
-        Color::AMARILLO,
-    );
-
-    assert_eq!(1, posicion.unwrap());
-
-    let posicion: Option<usize> = concesionaria.obtener_posicion_auto(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2010,
-        Color::AMARILLO,
-    );
-
-    assert_eq!(None, posicion)
-}
-#[test]
-fn test_concesionaria_buscar_auto() {
-    let auto1 = Auto::new(
-        "BMW".to_string(),
-        "Z1".to_string(),
-        2001,
-        Color::ROJO,
-        1000.0,
-    );
-
-    let auto2: Auto = Auto::new(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2016,
-        Color::AMARILLO,
-        300.0,
-    );
-
-    let auto3: Auto = Auto::new(
-        "Ford".to_string(),
-        "Fiesta".to_string(),
-        2016,
-        Color::AMARILLO,
-        300.0,
-    );
-
-    let mut concesionaria = Concesionaria::new(
-        "Simone".to_string(),
-        "Abasto al fondo".to_string(),
-        3,
-        vec![],
-    );
-    let busqueda0 =
-        concesionaria.buscar_auto("Ford".to_string(), "Ka".to_string(), 2016, Color::AMARILLO);
-
-    assert_eq!("No hay autos en stock".to_string(), busqueda0);
-    concesionaria.agregar_auto(auto1.clone());
-    concesionaria.agregar_auto(auto2.clone());
-    concesionaria.agregar_auto(auto3.clone());
-
-    let busqueda = concesionaria.buscar_auto(
-        "Ford".to_string(),
-        "Fiesta".to_string(),
-        2016,
-        Color::AMARILLO,
-    );
-
-    let busqueda2 =
-        concesionaria.buscar_auto("Ford".to_string(), "Ka".to_string(), 2016, Color::AMARILLO);
-
-    assert_eq!(auto3.to_string(), busqueda);
-    assert_eq!(
-        "No se encontro auto con esas caracteristicas".to_string(),
-        busqueda2
-    )
-}
-
-#[test]
-fn test_concesionaria_eliminar_auto() {
-    let auto1 = Auto::new(
-        "BMW".to_string(),
-        "Z1".to_string(),
-        2001,
-        Color::ROJO,
-        1000.0,
-    );
-
-    let auto2: Auto = Auto::new(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2016,
-        Color::AMARILLO,
-        300.0,
-    );
-
-    let auto3: Auto = Auto::new(
-        "Ford".to_string(),
-        "Fiesta".to_string(),
-        2016,
-        Color::AMARILLO,
-        300.0,
-    );
-
-    let mut concesionaria = Concesionaria::new(
-        "Simone".to_string(),
-        "Abasto al fondo".to_string(),
-        3,
-        vec![],
-    );
-
-    concesionaria.agregar_auto(auto1.clone());
-    concesionaria.agregar_auto(auto2.clone());
-    concesionaria.agregar_auto(auto3.clone());
-
-    let busqueda = concesionaria.buscar_auto(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2016,
-        Color::AMARILLO,
-    );
-
-    assert_eq!(auto2.to_string(), busqueda);
-
-    let resultado = concesionaria.eliminar_auto(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2016,
-        Color::AMARILLO,
-    );
-
-    let busqueda = concesionaria.buscar_auto(
-        "Renault".to_string(),
-        "Clio".to_string(),
-        2016,
-        Color::AMARILLO,
-    );
-
-    assert_ne!(false, resultado);
-    assert_eq!(
-        "No se encontro auto con esas caracteristicas".to_string(),
-        busqueda
-    );
+        // intento eliminar uno que no está
+        assert_eq!(cons.eliminar_auto(&a2), false);
+    }
 }

@@ -42,9 +42,10 @@ impl Playlist {
 
     pub fn mover_cancion(&mut self, titulo: &str, nueva_pos: usize) {
         if let Some(indice) = self.canciones.iter().position(|c| c.titulo == titulo) {
-            if nueva_pos < self.canciones.len() {
+            if nueva_pos <= self.canciones.len() {
                 let cancion = self.canciones.remove(indice);
-                self.canciones.insert(nueva_pos, cancion);
+                self.canciones
+                    .insert(nueva_pos.min(self.canciones.len()), cancion);
             }
         }
     }
@@ -182,5 +183,35 @@ mod tests {
         playlist.agregar_cancion(crear_cancion("Cancion 2", "wert", Genero::Jazz));
         playlist.eliminar_todas();
         assert!(playlist.canciones.is_empty());
+    }
+
+    #[test]
+    fn test_mover_cancion_a_ultima_posicion() {
+        let mut playlist = Playlist::new("Extra");
+        playlist.agregar_cancion(crear_cancion("A", "X", Genero::Rock));
+        playlist.agregar_cancion(crear_cancion("B", "X", Genero::Rock));
+        playlist.mover_cancion("A", 2);
+        assert_eq!(playlist.canciones.last().unwrap().titulo, "A");
+    }
+
+    #[test]
+    fn test_eliminar_cancion_con_titulos_duplicados() {
+        let mut playlist = Playlist::new("Dup");
+        playlist.agregar_cancion(crear_cancion("repe", "X", Genero::Rock));
+        playlist.agregar_cancion(crear_cancion("repe", "Y", Genero::Pop));
+        playlist.eliminar_cancion("repe");
+        assert!(playlist.canciones.is_empty());
+    }
+
+    #[test]
+    fn test_filtrar_sin_coincidencias() {
+        let mut playlist = Playlist::new("nada");
+        playlist.agregar_cancion(crear_cancion("cancion", "qsy", Genero::Jazz));
+        assert!(
+            playlist
+                .obtener_canciones_por_genero(Genero::Pop)
+                .is_empty()
+        );
+        assert!(playlist.obtener_canciones_por_artista("asdf").is_empty());
     }
 }

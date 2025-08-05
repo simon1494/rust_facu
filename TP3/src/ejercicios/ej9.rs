@@ -58,12 +58,29 @@ impl Veterinaria {
         }
     }
 
-    pub fn agregar_mascota(&mut self, mascota: Mascota) {
-        self.cola_atencion.push_back(mascota);
+    fn existe_en_cola(&self, nombre: &str, telefono: &str) -> bool {
+        for m in &self.cola_atencion {
+            if m.nombre == nombre && m.tutor.telefono == telefono {
+                return true;
+            }
+        }
+        false
     }
 
-    pub fn agregar_mascota_prioritaria(&mut self, mascota: Mascota) {
+    pub fn agregar_mascota(&mut self, mascota: Mascota) -> bool {
+        if self.existe_en_cola(&mascota.nombre, &mascota.tutor.telefono) {
+            return false; // no agregar duplicado
+        }
+        self.cola_atencion.push_back(mascota);
+        true
+    }
+
+    pub fn agregar_mascota_prioritaria(&mut self, mascota: Mascota) -> bool {
+        if self.existe_en_cola(&mascota.nombre, &mascota.tutor.telefono) {
+            return false;
+        }
         self.cola_atencion.push_front(mascota);
+        true
     }
 
     pub fn atender_proxima(&mut self) -> Option<Mascota> {
@@ -90,6 +107,10 @@ impl Veterinaria {
         tratamiento: &str,
         proxima_visita: Option<Fecha>,
     ) {
+        // Antes de registrar, eliminar de la cola si estaba pendiente
+        self.eliminar_mascota_de_cola(&mascota.nombre, &mascota.tutor.telefono);
+
+        // Registrar la atención
         let atencion = Atencion {
             mascota,
             diagnostico: diagnostico.to_string(),
@@ -280,5 +301,26 @@ mod tests {
         assert!(atencion.is_some());
         let a = atencion.unwrap();
         assert_eq!(a.diagnostico, "infeccion");
+    }
+
+    #[test]
+    fn test_no_permite_duplicados_en_cola() {
+        let mut vet = Veterinaria::nueva(10, "duplicados", "dir 123");
+        let m = nueva_mascota();
+        let agregado1 = vet.agregar_mascota(m.clone());
+        let agregado2 = vet.agregar_mascota(m.clone());
+        assert!(agregado1);
+        assert!(!agregado2);
+        assert_eq!(vet.cola_atencion.len(), 1);
+    }
+
+    #[test]
+    fn test_registrar_atencion_elimina_de_cola() {
+        let mut vet = Veterinaria::nueva(11, "san martin", "dir");
+        let m = nueva_mascota();
+        vet.agregar_mascota(m.clone());
+        vet.registrar_atencion(m.clone(), "diagnostico", "tratamiento", None);
+        assert!(vet.cola_atencion.is_empty());
+        assert_eq!(vet.historial_atenciones.len(), 1);
     }
 }
